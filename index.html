@@ -1,0 +1,1553 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소득세법 퀴즈 대작전! 💰</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tone.js CDN for sound effects -->
+    <script src="https://cdn.jsdelivr.net/npm/tone@14.7.58/build/Tone.min.js"></script>
+    <style>
+        /* Inter font setting */
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Apply background and text color for the entire body using Tailwind's dark: prefix */
+            /* Default light mode colors */
+            @apply bg-gray-100 text-gray-800 flex items-center justify-center min-h-screen p-4;
+            transition: background-color 0.3s ease, color 0.3s ease; /* Add smooth transition effect */
+        }
+        /* Scrollbar design (optional) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+            @apply dark:bg-gray-700; /* Dark mode scrollbar track */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+            @apply dark:bg-gray-500; /* Dark mode scrollbar thumb */
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+            @apply dark:bg-gray-400; /* Dark mode scrollbar thumb hover */
+        }
+
+        /* --- Dark Mode Specific Overrides (Stronger Application for text visibility) --- */
+        /* Ensure body background changes directly when html has 'dark' class and text becomes very light */
+        html.dark body {
+            background-color: #111827 !important; /* Tailwind's gray-900 equivalent */
+            color: #f9fafb !important; /* Tailwind's gray-100 equivalent - general text color */
+        }
+        /* Ensure quiz-container background changes directly and its child texts are bright */
+        html.dark #quiz-container {
+            background-color: #1f2937 !important; /* Tailwind's gray-800 equivalent */
+        }
+
+        /* Force specific text elements to be white in dark mode */
+        html.dark #start-screen h1,
+        html.dark #start-screen p,
+        html.dark #quiz-header #question-count,
+        html.dark #quiz-header #timer-display,
+        html.dark #question-text,
+        html.dark #feedback-text,
+        html.dark #explanation-text,
+        html.dark #end-quiz-screen h2,
+        html.dark #incorrect-count-display {
+            color: #f9fafb !important; /* Tailwind's gray-100 - very light almost white */
+        }
+
+        /* MODIFIED: Ensure feedback-explanation-area background changes in dark mode */
+        html.dark #feedback-explanation-area {
+            background-color: #1f2937 !important; /* Tailwind's gray-800 equivalent for the explanation box */
+            border-color: #4b5563 !important; /* Dark mode border color */
+        }
+
+
+        /* Choices text color in dark mode - APPLY !IMPORTANT HERE more directly */
+        html.dark #question-choices-area > div {
+            color: #f9fafb !important; /* Ensures choice text is white in dark mode */
+            background-color: #374151 !important; /* Tailwind gray-700 equivalent */
+            border-color: #4b5563 !important; /* Tailwind gray-600 equivalent */
+        }
+
+        /* Override specific class text colors for dark mode */
+        .text-gray-700 { /* For start screen P tags, question count, timer, incorrect count */
+            @apply dark:text-gray-100 !important;
+        }
+        .text-gray-800 { /* For H1, H2, Question text */
+            @apply dark:text-gray-100 !important;
+        }
+        .text-blue-600 { /* For scores etc. */
+             @apply dark:text-blue-400 !important; /* Keep blue for scores but make it dark-mode friendly */
+        }
+
+        /* Specific dark mode styles for choice buttons */
+        #question-choices-area > div.hover\:bg-blue-50:hover {
+            @apply dark:hover:bg-blue-900 dark:hover:bg-opacity-20;
+        }
+
+        /* MODIFIED: Changed selected choice background and added distinct blue border for dark mode */
+        #question-choices-area > div.bg-blue-200 { /* selected choice in light mode */
+            /* Existing light mode styles */
+        }
+        html.dark #question-choices-area > div.bg-blue-200 { /* selected choice in dark mode */
+            background-color: #2a3547 !important; /* Slightly lighter than gray-800, darker than gray-700 for distinct selection */
+            border-color: #60a5fa !important; /* Tailwind blue-400 for a clear blue border */
+            border-width: 2px !important; /* Make border more visible */
+            /* Removed ring as border is now used for highlight */
+        }
+
+        #question-choices-area > div.bg-green-100 { /* correct answer feedback */
+            @apply dark:bg-green-700 dark:border-green-400;
+        }
+        #question-choices-area > div.bg-green-200 { /* selected correct answer */
+            @apply dark:bg-green-600 dark:border-green-300;
+        }
+        #question-choices-area > div.bg-red-200 { /* selected incorrect answer */
+            @apply dark:bg-red-600 dark:border-red-300;
+        }
+
+        /* --- Dark Mode for Message Box --- */
+        html.dark #message-box > div { /* Inner div of the message box */
+            background-color: #1f2937 !important; /* Darker background */
+            color: #f9fafb !important; /* Light text for consistency */
+        }
+
+        html.dark #message-text { /* Text inside the message box */
+            color: #f9fafb !important; /* Ensure message text is light */
+        }
+
+        /* Message box button for dark mode (using existing gradient, but ensuring text is visible) */
+        html.dark #message-ok-btn {
+            color: #ffffff !important; /* Explicitly ensure white text on button */
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-container" class="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl w-full max-w-2xl transition-colors duration-300 relative">
+        <!-- Settings Controls (Top Right) -->
+        <div id="settings-controls" class="absolute top-4 right-4 flex space-x-2">
+            <!-- Dark Mode Toggle -->
+            <button id="dark-mode-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition duration-300 ease-in-out hover:scale-110">
+                <!-- Sun icon (default: shown in light mode) -->
+                <svg id="sun-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h1m-16 0H3m15.325-7.325l-.707-.707M6.343 17.657l-.707.707M17.657 6.343l.707-.707M6.343 6.343l-.707-.707"></path>
+                </svg>
+                <!-- Moon icon (hidden by default, shown in dark mode) -->
+                <svg id="moon-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+            </button>
+            <!-- Sound Toggle -->
+            <button id="sound-toggle" class="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 transition duration-300 ease-in-out transform hover:scale-110">
+                <!-- Speaker icon (default: shown when sound is on) -->
+                <svg id="speaker-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9l1.414-1.414M7.05 18.95a5 5 0 010-7.072M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <!-- Mute icon (hidden by default, shown when sound is off) -->
+                <svg id="mute-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Start screen -->
+        <div id="start-screen" class="text-center p-6 space-y-4">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-6">소득세법 퀴즈 대작전! 💰</h1>
+            <p class="text-lg text-gray-700 dark:text-gray-300 mb-8">몇 문제 풀어볼까? 숫자 버튼을 눌러줘! 👇</p>
+            <div class="space-y-4">
+                <!-- Start 10 questions button with pastel gradient -->
+                <button id="start-10-btn" class="w-full bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    10문제 도전! 🚀
+                </button>
+                <!-- Start 20 questions button with pastel gradient -->
+                <button id="start-20-btn" class="w-full bg-gradient-to-r from-green-200 to-green-400 hover:from-green-300 hover:to-green-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    20문제 용감하게! 🌟
+                </button>
+                <!-- Start 40 questions button with pastel gradient -->
+                <button id="start-40-btn" class="w-full bg-gradient-to-r from-purple-200 to-purple-400 hover:from-purple-300 hover:to-purple-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    40문제 척척박사! 🌈
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz screen -->
+        <div id="quiz-screen" class="hidden w-full">
+            <!-- Quiz header: Question number, score, and Timer -->
+            <div id="quiz-header" class="flex justify-between items-center w-full mb-6">
+                <p id="question-count" class="text-lg font-semibold text-gray-700 dark:text-gray-300">문제 0 / 0</p>
+                <p id="timer-display" class="text-lg font-semibold text-gray-700 dark:text-gray-300">00:00</p>
+                <p id="score-display" class="text-lg font-semibold text-blue-600 dark:text-blue-400">별 점수: 0 ✨</p>
+            </div>
+
+            <!-- Question text -->
+            <p id="question-text" class="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-6"></p>
+
+            <!-- Choices area -->
+            <div id="question-choices-area" class="w-full space-y-4 mb-6">
+                <!-- Choices will be dynamically inserted here -->
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="O">O (동그라미)</div>
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="X">X (엑스)</div>
+            </div>
+
+            <!-- Feedback and explanation area -->
+            <div id="feedback-explanation-area" class="w-full bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-600 hidden">
+                <p id="feedback-text" class="font-semibold mb-2"></p>
+                <p id="explanation-text" class="text-gray-700 dark:text-gray-300 text-sm"></p>
+            </div>
+
+            <!-- Quiz control buttons -->
+            <div id="quiz-controls" class="w-full flex justify-between mt-6">
+                <!-- Check Answer / Next Question button with pastel gradient -->
+                <button id="check-next-btn" class="bg-gradient-to-r from-indigo-200 to-indigo-400 hover:from-indigo-300 hover:to-indigo-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    다음 문제로 Go! 👉
+                </button>
+                <!-- End Early button with pastel gradient -->
+                <button id="end-early-btn" class="bg-gradient-to-r from-red-200 to-red-400 hover:from-red-300 hover:to-red-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    퀴즈 이제 그만! 멈춰! ✋
+                </button>
+            </div>
+        </div>
+
+        <!-- End quiz screen -->
+        <div id="end-quiz-screen" class="text-center p-6 space-y-4 hidden w-full">
+            <h2 class="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-4">퀴즈 끝! 정말 멋진 도전이었어! ✨</h2>
+            <p id="final-score" class="text-2xl text-blue-600 dark:text-blue-400 font-bold mb-6">최종 점수: 0점</p>
+            <div id="end-quiz-buttons-area" class="space-y-4">
+                <!-- Restart Full Quiz button with pastel gradient -->
+                <button id="restart-full-quiz-btn" class="w-full bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    처음부터 다시! 🐥
+                </button>
+                <!-- Review Incorrect button with pastel gradient -->
+                <button id="review-incorrect-btn" class="w-full bg-gradient-to-r from-yellow-200 to-yellow-400 hover:from-yellow-300 hover:to-yellow-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    틀린 문제 복습! 🧠
+                </button>
+                <!-- Go To Home button with pastel gradient -->
+                <button id="go-to-home-btn" class="w-full bg-gradient-to-r from-gray-200 to-gray-400 hover:from-gray-300 hover:to-gray-500 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105">
+                    처음 화면으로! 🏠
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom message box -->
+    <div id="message-box" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white dark:bg-gray-700 p-6 rounded-lg shadow-xl text-center w-80">
+            <p id="message-text" class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-100"></p>
+            <button id="message-ok-btn" class="bg-gradient-to-r from-blue-200 to-blue-400 hover:from-blue-300 hover:to-blue-500 text-white font-bold py-2 px-4 rounded-lg">좋아! 😊</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================ Cache DOM elements ============================
+        const startScreen = document.getElementById('start-screen');
+        const quizScreen = document.getElementById('quiz-screen');
+        const endQuizScreen = document.getElementById('end-quiz-screen');
+
+        const start10Button = document.getElementById('start-10-btn');
+        const start20Button = document.getElementById('start-20-btn');
+        const start40Button = document.getElementById('start-40-btn');
+
+        const quizHeader = document.getElementById('quiz-header');
+        const questionCount = document.getElementById('question-count');
+        const timerDisplay = document.getElementById('timer-display'); // Added timer display element
+        const scoreDisplay = document.getElementById('score-display');
+        const questionText = document.getElementById('question-text');
+        const questionChoicesArea = document.getElementById('question-choices-area');
+        const feedbackExplanationArea = document.getElementById('feedback-explanation-area');
+        const feedbackText = document.getElementById('feedback-text');
+        const explanationText = document.getElementById('explanation-text');
+        const quizControls = document.getElementById('quiz-controls');
+        const checkNextButton = document.getElementById('check-next-btn');
+        const endEarlyButton = document.getElementById('end-early-btn');
+
+        const finalScoreDisplay = document.getElementById('final-score');
+        const endQuizButtonsArea = document.getElementById('end-quiz-buttons-area'); // Added
+        const restartFullQuizButton = document.getElementById('restart-full-quiz-btn');
+        const reviewIncorrectButton = document.getElementById('review-incorrect-btn');
+        const goToHomeButton = document.getElementById('go-to-home-btn');
+
+        const settingsControls = document.getElementById('settings-controls'); // Settings button container
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        const moonIcon = document.getElementById('moon-icon');
+        const sunIcon = document.getElementById('sun-icon');
+        const soundToggle = document.getElementById('sound-toggle');
+        const speakerIcon = document.getElementById('speaker-icon');
+        const muteIcon = document.getElementById('mute-icon');
+
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const messageOkButton = document.getElementById('message-ok-btn');
+
+        // ============================ Global variables and quiz data ============================
+        let allQuizData = []; // Array to store all quiz data
+        let currentQuizData = []; // Array of questions for the current quiz session
+        let incorrectQuestions = []; // Array to store incorrect questions
+        let currentQuestionIndex = 0;
+        let score = 0; // Raw score (number of correct answers)
+        let selectedChoice = null; // Changed to store 'O' or 'X'
+        let isAnswerChecked = false; // Flag for answer check status
+        let quizTotalQuestions = 0; // Total number of questions for the current quiz session (set at start)
+        let isSoundEnabled = true; // Sound active status
+        let timer = 0; // Timer in seconds
+        let timerIntervalId = null; // ID to clear the interval
+
+        // Tone.js PolySynth (synthesizer that can play multiple notes simultaneously)
+        const polySynth = new Tone.PolySynth(Tone.Synth).toDestination();
+
+        // ============================ Custom message box functions ============================
+        /**
+         * Function to display a message to the user (replaces alert)
+         * @param {string} message - Text message to display
+         */
+        function showMessage(message) {
+            messageText.textContent = message;
+            messageBox.classList.remove('hidden');
+            // Hide message box and remove event listener when 'OK' button is clicked
+            messageOkButton.addEventListener('click', hideMessage, { once: true });
+        }
+
+        /**
+         * Function to hide the message box
+         */
+        function hideMessage() {
+            messageBox.classList.add('hidden');
+        }
+
+        // ============================ Sound effect functions ============================
+        /**
+         * Checks Tone.start() and Tone.Destination.mute status before playing sound
+         * @returns {Promise<void>}
+         */
+        async function ensureAudioContextAndSound() {
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+            }
+            // Set Tone.Destination.mute based on isSoundEnabled status
+            Tone.Destination.mute = !isSoundEnabled;
+        }
+
+        /**
+         * Sound played when the answer is correct
+         */
+        async function playCorrectSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("C5", "8n"); // Play C5 note for 8th note duration
+            }
+        }
+
+        /**
+         * Sound played when the answer is incorrect
+         */
+        async function playIncorrectSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("C3", "8n"); // Play C3 note for 8th note duration
+            }
+        }
+
+        /**
+         * Sound played when quiz starts or restarts (uses chord)
+         */
+        async function playStartSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease(["C4", "E4", "G4"], "8n"); // Short ascending chord (C Major)
+            }
+        }
+
+        /**
+         * Sound played when quiz ends (uses chord)
+         */
+        async function playEndSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease(["A3", "C4", "E4"], "4n"); // Short, low descending sound (A Minor)
+            }
+        }
+
+        /**
+         * Sound played on general button click or choice selection
+         */
+        async function playButtonClickSound() {
+            await ensureAudioContextAndSound();
+            if (isSoundEnabled) {
+                polySynth.triggerAttackRelease("G4", "32n"); // Very short click sound
+            }
+        }
+
+        // ============================ Embed quiz data ============================
+        const incomeTaxQuizData = [
+            {
+                question: "거주자의 종합소득세 과세기간은 1월 1일부터 12월 31일까지로 한다. (O/X)",
+                answer: "O",
+                explanation: "소득세법상 거주자의 종합소득세 과세기간은 역년(1월 1일 ~ 12월 31일)을 원칙으로 한다."
+            },
+            {
+                question: "비거주자의 국내원천소득에 대해서는 원칙적으로 종합과세 방식을 적용한다. (O/X)",
+                answer: "X",
+                explanation: "비거주자의 국내원천소득에 대해서는 원칙적으로 분리과세(원천징수) 방식을 적용하며, 국내 사업장과 관련이 있는 소득 등에 한하여 종합과세를 적용한다."
+            },
+            {
+                question: "소득세법상 거주자는 국내에 주소를 두거나 183일 이상 거소를 둔 개인을 말한다. (O/X)",
+                answer: "O",
+                explanation: "소득세법상 거주자는 국내에 주소를 두거나 183일 이상 거소(생활의 근거가 되는 장소)를 둔 개인을 말한다."
+            },
+            {
+                question: "국외에서 발생한 소득에 대해서는 거주자에게만 과세한다. (O/X)",
+                answer: "O",
+                explanation: "국외에서 발생한 소득(국외원천소득)에 대해서는 무제한 납세의무를 지는 거주자에게만 과세하며, 비거주자에게는 과세하지 않는다."
+            },
+            {
+                question: "이자소득은 비과세되는 소득을 제외하고는 모두 총수입금액에 산입한다. (O/X)",
+                answer: "O",
+                explanation: "이자소득은 비과세 또는 분리과세되는 소득을 제외하고는 모두 총수입금액에 산입하여 종합소득으로 과세한다."
+            },
+            {
+                question: "금융소득 종합과세기준금액은 연 2천만원이다. (O/X)",
+                answer: "O",
+                explanation: "금융소득(이자소득과 배당소득)의 종합과세 기준금액은 연 2천만원이며, 이를 초과하는 경우 다른 종합소득과 합산하여 과세한다."
+            },
+            {
+                question: "비영업대금의 이익은 무조건 분리과세 대상 소득이다. (O/X)",
+                answer: "X",
+                explanation: "비영업대금의 이익은 원천징수세율(25%)로 분리과세되지만, 금융소득 종합과세 대상 소득에 포함되어 2천만원을 초과하는 경우 종합과세된다."
+            },
+            {
+                question: "배당소득 중 총수입금액에 가산하는 금액(그로스업)은 법인세가 과세된 이익을 재원으로 하는 배당에 한한다. (O/X)",
+                answer: "O",
+                explanation: "그로스업(Gross-up)은 법인세가 과세된 이익을 재원으로 하는 배당소득에 대해 이중과세 조정을 위해 총수입금액에 가산하는 제도이다."
+            },
+            {
+                question: "잉여금 처분에 따른 배당소득의 수입시기는 잉여금 처분결의일이다. (O/X)",
+                answer: "X",
+                explanation: "잉여금 처분에 따른 배당소득의 수입시기는 잉여금 처분결의일이 아닌, 잉여금 처분결의에 따른 배당을 지급받은 날이다."
+            },
+            {
+                question: "출자공동사업자의 배당소득은 필요경비를 인정받을 수 있다. (O/X)",
+                answer: "X",
+                explanation: "출자공동사업자의 배당소득은 사업소득과 달리 필요경비를 인정받을 수 없다."
+            },
+            {
+                question: "사업소득의 총수입금액은 해당 과세기간에 수입하였거나 수입할 금액의 합계액이다. (O/X)",
+                answer: "O",
+                explanation: "사업소득의 총수입금액은 해당 과세기간에 귀속되는 수입 금액의 합계액이다. (발생주의에 따름)"
+            },
+            {
+                question: "부동산 임대소득 중 보증금에 대한 간주임대료 계산 시 금융수익은 차감하지 않는다. (O/X)",
+                answer: "X",
+                explanation: "부동산 임대소득 중 보증금에 대한 간주임대료 계산 시 금융수익(수입이자, 할인료, 배당금 등)은 차감한다."
+            },
+            {
+                question: "사업소득 계산 시 발생하는 결손금은 다른 종합소득금액에서 공제할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "사업소득에서 발생하는 결손금은 다른 종합소득금액(이자, 배당, 부동산 임대 외 사업, 근로, 연금, 기타소득)에서 순차적으로 공제할 수 있다."
+            },
+            {
+                question: "사업소득은 비과세 소득을 제외하고 모두 종합소득에 합산하여 과세한다. (O/X)",
+                answer: "O",
+                explanation: "사업소득은 비과세 소득을 제외하고 다른 종합소득과 합산하여 과세한다."
+            },
+            {
+                question: "소득세법상 사업소득은 부가가치세법상 사업의 범위와 항상 일치한다. (O/X)",
+                answer: "X",
+                explanation: "소득세법상 사업소득과 부가가치세법상 사업의 범위는 유사하지만, 항상 일치하지는 않는다. (예: 인적용역의 경우 부가가치세는 면세이나 소득세는 과세되는 등 차이가 있음)"
+            },
+            {
+                question: "근로소득의 수입시기는 근로를 제공한 날이다. (O/X)",
+                answer: "X",
+                explanation: "근로소득의 수입시기는 원칙적으로 근로를 제공한 날이 아닌, 급여를 받은 날(실제 지급받은 날 또는 지급받기로 한 날)이다."
+            },
+            {
+                question: "퇴직소득은 종합소득, 퇴직소득, 양도소득으로 구분되는 소득 중 하나이다. (O/X)",
+                answer: "O",
+                explanation: "소득세는 종합소득, 퇴직소득, 양도소득으로 구분되며, 퇴직소득은 분류과세되는 소득 중 하나이다."
+            },
+            {
+                question: "퇴직소득에 대한 세액은 원칙적으로 퇴직소득세액 계산 시 적용되는 세율을 곱하여 산출한다. (O/X)",
+                answer: "O",
+                explanation: "퇴직소득은 분류과세되므로 종합소득과는 별도로 퇴직소득세액 계산 시 적용되는 세율을 곱하여 세액을 산출한다."
+            },
+            {
+                question: "국민연금법에 따라 받는 연금은 연금소득에 해당한다. (O/X)",
+                answer: "O",
+                explanation: "국민연금법에 따라 받는 연금은 공적연금소득에 해당하여 연금소득으로 과세된다."
+            },
+            {
+                question: "연금소득은 공적연금소득과 사적연금소득으로 구분된다. (O/X)",
+                answer: "O",
+                explanation: "연금소득은 공적연금(국민연금, 공무원연금 등)과 사적연금(연금저축, 퇴직연금 등)으로 구분된다."
+            },
+            {
+                question: "사적연금소득은 연 1,200만원을 초과하는 경우 무조건 종합과세된다. (O/X)",
+                answer: "X",
+                explanation: "사적연금소득이 연 1,200만원을 초과하는 경우 종합과세되지만, 납세자가 분리과세를 선택할 수도 있다."
+            },
+            {
+                question: "기타소득은 열거된 소득 외에는 과세하지 않는다. (O/X)",
+                answer: "O",
+                explanation: "소득세법은 열거주의를 채택하고 있으므로 기타소득은 법에 열거된 소득에 대해서만 과세한다."
+            },
+            {
+                question: "복권 당첨금은 3억원을 초과하는 경우 22%의 세율이 적용된다. (O/X)",
+                answer: "X",
+                explanation: "복권 당첨금은 3억원 이하분은 20%, 3억원 초과분은 30%의 분리과세 세율이 적용된다."
+            },
+            {
+                question: "계약의 위약 또는 해약으로 인하여 받는 위약금과 배상금은 기타소득으로 과세한다. (O/X)",
+                answer: "O",
+                explanation: "계약의 위약 또는 해약으로 인하여 받는 위약금과 배상금은 기타소득에 해당한다."
+            },
+            {
+                question: "기타소득금액이 300만원 이하인 경우에는 납세자의 선택에 따라 분리과세하거나 종합과세할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "기타소득금액(수입금액-필요경비)이 300만원 이하인 경우, 납세자는 분리과세(20% 세율)와 종합과세 중 선택할 수 있다."
+            },
+            {
+                question: "양도소득세는 소득세법에 열거된 자산의 양도에 대해서만 과세한다. (O/X)",
+                answer: "O",
+                explanation: "양도소득세도 소득세법의 열거주의 원칙에 따라 법에 열거된 자산의 양도에 대해서만 과세된다."
+            },
+            {
+                question: "양도소득세 과세대상인 부동산을 양도한 경우, 양도차익 계산 시 취득가액은 실지거래가액을 원칙으로 한다. (O/X)",
+                answer: "O",
+                explanation: "양도소득세 계산 시 취득가액은 실지거래가액이 확인되는 경우 실지거래가액을 원칙으로 한다."
+            },
+            {
+                question: "양도소득세 계산 시 장기보유특별공제는 모든 양도자산에 적용된다. (O/X)",
+                answer: "X",
+                explanation: "장기보유특별공제는 등기된 토지 및 건물과 조합원입주권에 한하여 적용되며, 비사업용 토지, 미등기 양도자산 등에는 적용되지 않는다."
+            },
+            {
+                question: "1세대 1주택 비과세 요건 충족 시, 양도소득세가 비과세된다. (O/X)",
+                answer: "O",
+                explanation: "소득세법상 1세대 1주택 비과세 요건을 충족하는 경우, 양도소득세가 비과세된다."
+            },
+            {
+                question: "주택의 양도로 인한 양도소득은 1세대 1주택 비과세 규정이 적용되지 않는 경우에도 항상 중과세된다. (O/X)",
+                answer: "X",
+                explanation: "주택의 양도로 인한 양도소득은 1세대 1주택 비과세가 적용되지 않더라도 모든 경우에 중과세되는 것은 아니며, 다주택자 등에 대한 중과세 규정이 적용될 수 있다."
+            },
+            {
+                question: "거주자의 종합소득공제는 인적공제, 특별소득공제, 연금보험료공제로 구분된다. (O/X)",
+                answer: "O",
+                explanation: "종합소득공제는 인적공제, 특별소득공제, 연금보험료공제 등으로 구분된다."
+            },
+            {
+                question: "기본공제 대상 부양가족은 소득금액이 100만원을 초과하더라도 공제받을 수 있다. (O/X)",
+                answer: "X",
+                explanation: "기본공제 대상 부양가족은 연간 소득금액이 100만원(근로소득만 있는 경우 총급여액 500만원) 이하인 경우에만 공제받을 수 있다."
+            },
+            {
+                question: "배우자 공제는 배우자의 소득 유무와 관계없이 공제 가능하다. (O/X)",
+                answer: "X",
+                explanation: "배우자 공제는 배우자의 연간 소득금액이 100만원(근로소득만 있는 경우 총급여액 500만원) 이하인 경우에만 공제 가능하다."
+            },
+            {
+                question: "추가공제 중 경로 우대 공제는 70세 이상인 경우 적용된다. (O/X)",
+                answer: "O",
+                explanation: "경로 우대 공제는 해당 거주자 또는 그 기본공제대상자가 70세 이상인 경우 적용된다."
+            },
+            {
+                question: "장애인 추가공제는 본인이 장애인이거나 기본공제 대상자인 배우자 등이 장애인인 경우 적용된다. (O/X)",
+                answer: "O",
+                explanation: "장애인 추가공제는 본인 또는 기본공제 대상자인 배우자, 부양가족 등이 장애인인 경우 적용된다."
+            },
+            {
+                question: "국민연금보험료 공제는 소득금액에 관계없이 납부액 전액을 공제한다. (O/X)",
+                answer: "O",
+                explanation: "국민연금보험료 공제는 연간 납부액 전액을 소득금액에 관계없이 종합소득금액에서 공제한다."
+            },
+            {
+                question: "주택담보대출 이자상환액 소득공제는 무주택 세대주만 적용받을 수 있다. (O/X)",
+                answer: "X",
+                explanation: "주택담보대출 이자상환액 소득공제는 주택을 소유한 세대주도 일정 요건을 충족하면 적용받을 수 있다. (예: 취득 당시 무주택, 기준시가 요건 등)"
+            },
+            {
+                question: "개인연금저축 소득공제는 연간 400만원 한도로 공제 가능하다. (O/X)",
+                answer: "X",
+                explanation: "개인연금저축 소득공제는 2000년 이전 가입분만 해당하며, 현재는 연금계좌세액공제로 전환되어 소득공제가 아닌 세액공제 대상이다."
+            },
+            {
+                question: "소기업·소상공인 공제부금 소득공제는 사업소득이 있는 자만 적용받을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "소기업·소상공인 공제부금(노란우산공제) 소득공제는 사업소득이 있는 거주자 또는 법인의 대표자만 적용받을 수 있다."
+            },
+            {
+                question: "주택마련저축 소득공제는 총급여액이 7천만원 이하인 근로자만 적용받을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "주택마련저축(주택청약종합저축 등) 소득공제는 총급여액이 7천만원 이하인 무주택 세대주인 근로자만 적용받을 수 있다."
+            },
+            {
+                question: "의료비 세액공제는 총급여액의 3%를 초과하는 금액에 대해서만 공제 가능하다. (O/X)",
+                answer: "O",
+                explanation: "의료비 세액공제는 총급여액의 3%를 초과하는 금액에 대해서만 공제 가능하다 (최저한도)."
+            },
+            {
+                question: "교육비 세액공제는 본인, 배우자, 직계비속에 대해서만 적용된다. (O/X)",
+                answer: "X",
+                explanation: "교육비 세액공제는 본인, 배우자, 직계비속 외에 형제자매, 직계존속(나이 요건 충족 시)에 대해서도 적용될 수 있다."
+            },
+            {
+                question: "기부금 세액공제는 지정기부금의 경우 3천만원 이하분에 대해 15%, 3천만원 초과분에 대해 30%를 공제한다. (O/X)",
+                answer: "X",
+                explanation: "기부금 세액공제는 1천만원 이하분은 15%, 1천만원 초과분은 30%(일부 20% 및 35%)를 공제한다. (3천만원 기준이 아님)"
+            },
+            {
+                question: "월세액 세액공제는 무주택 세대주로서 총급여액이 7천만원 이하인 근로자만 적용받을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "월세액 세액공제는 무주택 세대주인 근로자(또는 성실사업자)로서 총급여액(종합소득금액)이 7천만원(6천만원) 이하인 경우에 적용받을 수 있다."
+            },
+            {
+                question: "표준세액공제는 근로소득이 없는 거주자도 적용받을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "표준세액공제는 특별세액공제나 특별소득공제를 신청하지 않는 경우 일정 금액(연 7만원 또는 13만원)을 공제받는 것으로, 근로소득이 없는 거주자도 적용받을 수 있다."
+            },
+            {
+                question: "자녀세액공제는 자녀의 수에 따라 공제금액이 달라진다. (O/X)",
+                answer: "O",
+                explanation: "자녀세액공제는 자녀의 수에 따라 공제금액이 달라진다. (1명 15만원, 2명 30만원, 3명부터는 1명당 30만원 추가 등)"
+            },
+            {
+                question: "납세자가 소득세법에 따라 세액공제와 세액감면 중 유리한 것을 선택할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "세액공제와 세액감면은 중복 적용되지 않는 경우 납세자에게 유리한 것을 선택하여 적용할 수 있다."
+            },
+            {
+                question: "재산제세 과오납금에 대한 환급가산금은 이자소득으로 과세된다. (O/X)",
+                answer: "O",
+                explanation: "국세환급가산금은 이자소득으로 과세되지 않으나, 재산제세(취득세, 등록면허세, 재산세 등) 과오납 환급가산금은 이자소득으로 과세된다."
+            },
+            {
+                question: "소득세의 납세지는 원칙적으로 주소지이다. (O/X)",
+                answer: "O",
+                explanation: "소득세는 국세이므로 납세의무자의 주소지를 납세지로 하는 것이 원칙이다."
+            },
+            {
+                question: "소득세의 종합소득세 신고기한은 다음 연도 5월 31일이다. (O/X)",
+                answer: "X",
+                explanation: "종합소득세 신고기한은 다음 연도 5월 1일부터 5월 31일까지이다."
+            },
+            {
+                question: "종합소득세는 과세표준에 누진세율을 적용하여 산출한다. (O/X)",
+                answer: "O",
+                explanation: "종합소득세는 소득세 과세표준에 누진세율을 적용하여 산출한다."
+            },
+            {
+                question: "중간예납세액은 종합소득세 납부세액에서 차감된다. (O/X)",
+                answer: "O",
+                explanation: "중간예납세액은 기납부세액에 해당하므로 종합소득세 산출세액에서 차감된다."
+            },
+            {
+                question: "성실신고확인서 제출 대상 사업자는 종합소득세 신고기한을 1개월 연장할 수 있다. (O/X)",
+                answer: "O",
+                explanation: "성실신고확인서 제출 대상 사업자는 종합소득세 신고기한을 1개월 연장할 수 있다. (5월 31일 → 6월 30일)"
+            },
+            {
+                question: "수정신고는 법정신고기한이 지난 후에 과세표준 또는 세액을 수정하여 신고하는 것을 말한다. (O/X)",
+                answer: "O",
+                explanation: "수정신고는 법정신고기한 내에 신고한 자가 과세표준이나 세액을 과소하게 신고한 경우 법정신고기한이 지난 후에 수정하여 신고하는 것을 말한다."
+            },
+            {
+                question: "경정청구는 법정신고기한이 지난 후에 과세표준 또는 세액을 감소시켜 달라고 요청하는 것을 말한다. (O/X)",
+                answer: "O",
+                explanation: "경정청구는 법정신고기한이 지난 후에 과세표준이나 세액을 과다하게 신고한 경우 이를 감소시켜 달라고 요청하는 것을 말한다."
+            },
+            {
+                question: "가산세는 세법에서 정한 의무를 이행하지 않은 경우 부과되는 벌칙이다. (O/X)",
+                answer: "O",
+                explanation: "가산세는 세법에 규정된 의무를 위반한 경우에 부과되는 행정벌의 성격을 가진다."
+            },
+            {
+                question: "무신고가산세는 납부할 세액이 없는 경우에는 적용되지 않는다. (O/X)",
+                answer: "X",
+                explanation: "무신고가산세는 납부할 세액이 없는 경우에도 적용될 수 있다. (수입금액 또는 과세표준에 따라 산정될 수 있음)"
+            },
+            {
+                question: "과소신고가산세는 과세표준이나 세액을 과소하게 신고한 경우에 부과된다. (O/X)",
+                answer: "O",
+                explanation: "과소신고가산세는 과세표준이나 세액을 법정신고기한까지 과소하게 신고한 경우에 부과된다."
+            },
+            {
+                question: "납부지연가산세는 미납세액 또는 미달납부세액에 대해 하루하루 계산된다. (O/X)",
+                answer: "O",
+                explanation: "납부지연가산세는 납부기한까지 국세를 납부하지 않거나 과소납부한 경우 그 미납 또는 미달납부세액에 대해 납부기한 다음 날부터 자진납부일 또는 고지일까지 1일당 이자율을 곱하여 계산된다."
+            },
+            {
+                question: "원천징수는 소득 지급자가 소득을 지급할 때 세금을 미리 징수하는 제도이다. (O/X)",
+                answer: "O",
+                explanation: "원천징수는 소득 또는 수입금액을 지급하는 자가 그 금액을 지급할 때 미리 세금의 일부 또는 전부를 징수하여 국가에 납부하는 제도이다."
+            },
+            {
+                question: "근로소득에 대한 원천징수는 간이세액표에 따라 징수한다. (O/X)",
+                answer: "O",
+                explanation: "근로소득에 대한 원천징수는 국세청장이 고시하는 근로소득 간이세액표에 따라 매월 징수한다."
+            },
+            {
+                question: "퇴직소득에 대해서는 원천징수를 하지 않는다. (O/X)",
+                answer: "X",
+                explanation: "퇴직소득은 소득을 지급하는 자가 원천징수 의무를 지닌다."
+            },
+            {
+                question: "사업소득자는 원천징수 대상이 아니다. (O/X)",
+                answer: "X",
+                explanation: "사업소득 중 일부(예: 전문직 사업소득 등)는 소득을 지급하는 자가 원천징수 의무를 지닌다."
+            },
+            {
+                question: "비거주자의 국내원천소득에 대해서는 원천징수 의무가 없다. (O/X)",
+                answer: "X",
+                explanation: "비거주자의 국내원천소득에 대해서는 원칙적으로 원천징수 의무가 있다."
+            },
+            {
+                question: "연말정산은 근로소득자가 1년간의 소득에 대한 세액을 확정하는 절차이다. (O/X)",
+                answer: "O",
+                explanation: "연말정산은 근로소득자가 1년 동안 받은 근로소득에 대해 최종적으로 소득세를 정산하는 절차이다."
+            },
+            {
+                question: "연말정산 시 주택자금상환액 공제는 무주택자가 아닌 경우에도 적용될 수 있다. (O/X)",
+                answer: "X",
+                explanation: "연말정산 시 주택자금상환액 공제는 주택을 소유하지 않은 (무주택) 근로자만 적용받을 수 있다."
+            },
+            {
+                question: "연말정산 시 의료비 세액공제는 본인 명의의 신용카드 사용액만 인정된다. (O/X)",
+                answer: "X",
+                explanation: "연말정산 시 의료비 세액공제는 본인 외에 기본공제 대상자인 부양가족의 의료비도 공제 대상이 된다."
+            },
+            {
+                question: "결정 또는 경정으로 인하여 증가된 소득금액은 그 결정일 또는 경정일이 속하는 과세기간의 소득금액으로 본다. (O/X)",
+                answer: "X",
+                explanation: "결정 또는 경정으로 인하여 증가된 소득금액은 그 결정일 또는 경정일이 아닌, 당초 그 소득이 발생한 과세기간의 소득금액으로 본다."
+            },
+            {
+                question: "사업소득의 필요경비는 해당 과세기간의 총수입금액에 대응하는 모든 비용을 말한다. (O/X)",
+                answer: "O",
+                explanation: "사업소득의 필요경비는 해당 과세기간의 총수입금액을 얻기 위하여 사용된 비용으로서 일반적으로 용인되는 통상적인 비용을 말한다."
+            },
+            {
+                question: "업무용 승용차 관련 비용은 한도 없이 필요경비로 인정된다. (O/X)",
+                answer: "X",
+                explanation: "업무용 승용차 관련 비용은 감가상각비 등 연간 1천5백만원(운행기록 미작성 시 1천5백만원) 한도로 필요경비가 인정된다."
+            },
+            {
+                question: "접대비는 일정 한도 내에서만 필요경비로 인정된다. (O/X)",
+                answer: "O",
+                explanation: "접대비는 일정한 한도액 내에서만 필요경비로 인정되며, 한도 초과액은 필요경비에 산입되지 않는다."
+            },
+            {
+                question: "기부금은 사업소득의 필요경비로 인정되지 않는다. (O/X)",
+                answer: "X",
+                explanation: "법정기부금, 지정기부금 등은 일정 한도 내에서 사업소득의 필요경비로 인정될 수 있다."
+            },
+            {
+                question: "감가상각비는 사업소득의 필요경비에 산입된다. (O/X)",
+                answer: "O",
+                explanation: "감가상각비는 사업용 고정자산의 가치 감소분을 필요경비로 인정하여 과세소득을 줄여준다."
+            },
+            {
+                question: "종합소득세 과세표준 계산 시 결손금은 먼저 사업소득금액에서 공제한다. (O/X)",
+                answer: "O",
+                explanation: "사업소득의 결손금은 해당 과세기간의 다른 종합소득금액(이자, 배당, 부동산 임대 외 사업, 근로, 연금, 기타소득)에서 공제한 후 남은 금액이 있다면 다음 과세기간으로 이월하여 공제한다."
+            },
+            {
+                question: "부동산 임대소득에서 발생한 결손금은 다른 종합소득금액에서 공제할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "부동산 임대소득에서 발생한 결손금은 원칙적으로 다른 종합소득금액에서 공제할 수 없다 (부동산 임대소득 간 통산은 가능)."
+            },
+            {
+                question: "주택 임대소득은 연 2천만원을 초과하는 경우에만 종합과세된다. (O/X)",
+                answer: "X",
+                explanation: "주택 임대소득은 연 2천만원 이하인 경우 분리과세(14%)를 선택할 수 있으며, 초과하는 경우 또는 선택하지 않는 경우 종합과세된다."
+            },
+            {
+                question: "주택 임대소득에 대한 수입금액은 월세 외에 보증금에 대한 간주임대료를 포함한다. (O/X)",
+                answer: "O",
+                explanation: "주택 임대소득의 수입금액에는 월세와 함께 보증금에 대한 간주임대료(3주택 이상 소유자 등 일정 요건 충족 시)가 포함된다."
+            },
+            {
+                question: "배우자로부터 증여받은 자산을 5년 이내에 양도하는 경우 이월과세 규정이 적용된다. (O/X)",
+                answer: "X",
+                explanation: "배우자로부터 증여받은 자산을 10년(2023년 세법 개정 전 5년) 이내에 양도하는 경우 이월과세 규정이 적용된다."
+            },
+            {
+                question: "이월과세 규정이 적용되는 경우, 취득가액은 증여자의 취득가액으로 한다. (O/X)",
+                answer: "O",
+                explanation: "이월과세 규정이 적용되는 경우 양도차익 계산 시 취득가액은 증여자의 취득 당시 가액으로 한다."
+            },
+            {
+                question: "양도소득세 계산 시 양도차익은 양도가액에서 취득가액 및 필요경비를 차감하여 산정한다. (O/X)",
+                answer: "O",
+                explanation: "양도차익은 양도가액에서 취득가액과 자본적 지출액, 양도비 등 필요경비를 차감하여 산정한다."
+            },
+            {
+                question: "양도소득 기본공제는 양도자산별로 각각 250만원을 공제한다. (O/X)",
+                answer: "X",
+                explanation: "양도소득 기본공제는 소득별(부동산, 주식, 파생상품 등)로 각각 연간 250만원을 공제하며, 자산별로 공제하는 것은 아니다."
+            },
+            {
+                question: "1세대 1주택 비과세 요건 중 2년 이상 보유 요건은 조정대상지역의 경우 2년 이상 거주 요건이 추가된다. (O/X)",
+                answer: "O",
+                explanation: "1세대 1주택 비과세 요건 중 조정대상지역 내 주택의 경우 2년 이상 보유 외에 2년 이상 거주 요건이 추가된다."
+            },
+            {
+                question: "일시적 2주택의 경우, 종전 주택을 신규 주택 취득일부터 3년 이내에 양도하면 비과세 적용이 가능하다. (O/X)",
+                answer: "O",
+                explanation: "일시적 2주택의 경우, 신규 주택 취득일부터 3년 이내(일정 조건 충족 시 1년 또는 2년)에 종전 주택을 양도하면 비과세 적용이 가능하다."
+            },
+            {
+                question: "상속받은 자산을 양도하는 경우, 취득시기는 피상속인의 취득시기이다. (O/X)",
+                answer: "X",
+                explanation: "상속받은 자산의 취득시기는 상속개시일이며, 취득가액은 상속세 과세가액으로 한다."
+            },
+            {
+                question: "신축 주택에 대한 취득가액은 환산취득가액으로 할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "신축 주택의 경우 환산취득가액을 적용할 수 없고, 실제 건축비 등을 취득가액으로 한다."
+            },
+            {
+                question: "금융소득 종합과세 대상자는 매년 5월 종합소득세 신고를 해야 한다. (O/X)",
+                answer: "O",
+                explanation: "금융소득 종합과세 대상자(연 2천만원 초과)는 다음 연도 5월에 종합소득세 신고를 해야 한다."
+            },
+            {
+                question: "분리과세되는 이자소득과 배당소득은 종합소득세 신고대상에 포함되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "원천징수로 납세의무가 종결되는 분리과세 이자소득과 배당소득은 종합소득세 신고대상에 포함되지 않는다."
+            },
+            {
+                question: "직무발명보상금은 비과세 기타소득에 해당한다. (O/X)",
+                answer: "O",
+                explanation: "직무발명보상금은 일정 한도 내에서 비과세 기타소득에 해당한다."
+            },
+            {
+                question: "상속세 및 증여세법에 따라 상속세 과세가액에 산입된 금전 또는 물품은 비과세된다. (O/X)",
+                answer: "O",
+                explanation: "상속세 또는 증여세가 과세된 소득은 소득세가 다시 과세되지 않는다 (이중과세 방지)."
+            },
+            {
+                question: "주식 양도소득은 대주주에 대해서만 과세된다. (O/X)",
+                answer: "X",
+                explanation: "주식 양도소득은 상장주식의 대주주 외에 비상장주식의 양도 등도 과세 대상이다."
+            },
+            {
+                question: "국외 주식 양도소득은 거주자에게만 과세된다. (O/X)",
+                answer: "O",
+                explanation: "국외 주식 양도소득은 무제한 납세의무를 지는 거주자에게만 과세된다."
+            },
+            {
+                question: "양도소득세의 예정신고는 양도일이 속하는 달의 말일부터 2개월 이내에 해야 한다. (O/X)",
+                answer: "O",
+                explanation: "양도소득세 예정신고는 양도일이 속하는 달의 말일부터 2개월 이내에 해야 한다 (주식 등은 반기 말일로부터 2개월 이내)."
+            },
+            {
+                question: "토지거래허가구역 내 토지 양도는 허가 이전에 양도소득세를 신고해야 한다. (O/X)",
+                answer: "X",
+                explanation: "토지거래허가구역 내 토지 양도는 허가를 받은 후에 양도소득세를 신고한다. (대금 청산일이 허가일 이전이라도 허가일이 양도일이 됨)"
+            },
+            {
+                question: "국외 자산 양도소득에 대한 세액공제는 국외에서 납부한 세액을 한도로 한다. (O/X)",
+                answer: "O",
+                explanation: "국외 자산 양도소득에 대한 외국납부세액공제는 국외에서 납부한 세액과 국내 산출세액 중 적은 금액을 한도로 한다."
+            },
+            {
+                question: "국외 자산 양도소득에 대해서는 장기보유특별공제가 적용되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "국외 자산 양도소득에 대해서는 장기보유특별공제가 적용되지 않는다."
+            },
+            {
+                question: "거주자가 사망한 경우, 사망일이 속하는 달의 말일부터 6개월 이내에 상속인이 종합소득세 신고를 해야 한다. (O/X)",
+                answer: "O",
+                explanation: "거주자가 사망한 경우, 사망일이 속하는 달의 말일부터 6개월 이내에 상속인이 피상속인의 종합소득세(준비과세)를 신고해야 한다."
+            },
+            {
+                question: "중간예납 의무가 있는 거주자는 고지된 중간예납세액을 납부하지 않으면 가산세가 부과된다. (O/X)",
+                answer: "O",
+                explanation: "고지된 중간예납세액을 납부기한 내에 납부하지 않으면 납부지연가산세가 부과된다."
+            },
+            {
+                question: "소득세법상 공동사업장의 소득금액은 각 공동사업자에게 배분하여 과세한다. (O/X)",
+                answer: "O",
+                explanation: "공동사업장의 소득은 공동사업자 각자의 손익분배비율에 따라 배분하여 각자의 종합소득에 합산하여 과세한다."
+            },
+            {
+                question: "공동사업자가 배우자인 경우, 손익분배비율과 관계없이 항상 주된 사업자에게 소득이 합산되어 과세된다. (O/X)",
+                answer: "X",
+                explanation: "공동사업자가 배우자 등 특수관계인인 경우, 공동사업의 소득을 공동사업자에게 배분하지 않고 주된 사업자에게 합산하여 과세할 수 있다 (공동사업 합산과세 특례). 하지만 손익분배비율이 진실하다고 인정되는 경우에는 그러하지 아니하다."
+            },
+            {
+                question: "필요경비 불산입 항목에는 사업과 직접 관련 없는 지출도 포함된다. (O/X)",
+                answer: "O",
+                explanation: "사업과 직접 관련 없는 지출은 필요경비로 인정되지 않는다."
+            },
+            {
+                question: "필요경비로 인정되는 기부금은 소득금액의 100분의 50을 한도로 한다. (O/X)",
+                answer: "X",
+                explanation: "기부금의 필요경비 산입 한도는 소득금액에 따라 다르며, 법정기부금은 소득금액의 100%, 지정기부금은 소득금액의 30% 또는 10%를 한도로 한다."
+            },
+            {
+                question: "감가상각자산의 내용연수는 세법에서 정한 기준 내용연수를 반드시 따라야 한다. (O/X)",
+                answer: "X",
+                explanation: "감가상각자산의 내용연수는 세법에서 정한 기준 내용연수 범위 내에서 납세자가 선택하여 신고할 수 있다."
+            },
+            {
+                question: "소득금액 계산 시 비상각자산의 감가상각비는 인정되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "감가상각비는 감가상각 대상 자산(상각자산)에 한하여 인정되므로, 비상각자산(토지 등)에 대한 감가상각비는 인정되지 않는다."
+            },
+            {
+                question: "사업자가 복식부기의무자에 해당하는 경우, 기준경비율을 적용할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "복식부기의무자는 장부를 기장하여 소득금액을 계산해야 하며, 장부를 작성하지 않은 경우에도 원칙적으로 기준경비율이 아닌 추계조사를 통해 소득금액이 계산될 수 있다."
+            },
+            {
+                question: "추계결정 또는 경정 시 필요경비는 단순경비율 또는 기준경비율에 의하여 계산한다. (O/X)",
+                answer: "O",
+                explanation: "장부를 기장하지 않은 사업자의 소득금액을 추계할 경우, 수입금액에 단순경비율 또는 기준경비율을 곱하여 필요경비를 계산한다."
+            },
+            {
+                question: "주택신축판매업의 총수입금액에는 분양가액과 그 외의 부대수입도 포함된다. (O/X)",
+                answer: "O",
+                explanation: "주택신축판매업의 총수입금액에는 분양가액 외에 용역의 제공 등으로 발생하는 부대수입도 포함된다."
+            },
+            {
+                question: "사업소득의 수입시기는 일반적으로 용역 제공 또는 재화 인도일이다. (O/X)",
+                answer: "X",
+                explanation: "사업소득의 수입시기는 원칙적으로 권리가 확정되는 날이며, 재화의 인도일이나 용역의 제공 완료일과는 다를 수 있다. (현금주의와 발생주의 차이)"
+            },
+            {
+                question: "금융기관으로부터 받은 대출이자는 사업소득의 필요경비로 인정되지 않는다. (O/X)",
+                answer: "X",
+                explanation: "사업과 관련된 금융기관 대출이자는 사업소득의 필요경비로 인정된다."
+            },
+            {
+                question: "소득세법상 자산의 양도에는 매매, 교환, 현물출자 등이 포함된다. (O/X)",
+                answer: "O",
+                explanation: "양도소득세 과세 대상인 양도는 매매, 교환, 법인에 대한 현물출자 등을 포함한다."
+            },
+            {
+                question: "양도소득세 과세대상인 주식의 양도로 인한 소득은 상장주식과 비상장주식 모두 과세된다. (O/X)",
+                answer: "O",
+                explanation: "주식 양도소득세는 상장주식 중 대주주가 양도하는 경우와 비상장주식의 양도에 대해 과세된다."
+            },
+            {
+                question: "양도소득세 계산 시 취득가액을 확인할 수 없는 경우, 매매사례가액, 감정가액, 환산취득가액, 기준시가 순으로 적용한다. (O/X)",
+                answer: "O",
+                explanation: "실지거래가액을 확인할 수 없는 경우 취득가액은 매매사례가액, 감정가액, 환산취득가액, 기준시가 순으로 적용한다."
+            },
+            {
+                question: "양도소득 기본공제는 연간 250만원으로, 여러 자산을 양도하더라도 총 250만원을 초과할 수 없다. (O/X)",
+                answer: "X",
+                explanation: "양도소득 기본공제는 소득의 종류별(부동산, 주식, 파생상품 등)로 각각 연간 250만원을 공제하며, 총 250만원을 초과할 수 있다. (즉, 부동산 250만원, 주식 250만원 등 각각 공제)"
+            },
+            {
+                question: "양도소득세율은 양도자산의 종류, 보유기간, 양도횟수 등에 따라 달라진다. (O/X)",
+                answer: "O",
+                explanation: "양도소득세율은 양도자산의 종류(부동산, 주식 등), 보유기간(단기 양도 중과), 양도횟수(미등기 양도 중과) 등에 따라 다르게 적용된다."
+            },
+            {
+                question: "비사업용 토지 양도 시에는 일반세율에 중과세율이 적용된다. (O/X)",
+                answer: "O",
+                explanation: "비사업용 토지 양도 시에는 일반 양도소득세율에 추가로 중과세율이 적용된다."
+            },
+            {
+                question: "미등기 양도자산에 대해서는 장기보유특별공제 및 기본공제가 적용되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "미등기 양도자산에 대해서는 장기보유특별공제, 양도소득 기본공제가 모두 적용되지 않으며, 높은 세율이 적용된다."
+            },
+            {
+                question: "배우자 이월과세 규정은 토지, 건물, 특정 시설물 이용권 등 부동산에 한하여 적용된다. (O/X)",
+                answer: "O",
+                explanation: "배우자 이월과세 규정은 부동산, 특정 시설물 이용권 등에 적용된다."
+            },
+            {
+                question: "양도소득세의 감면 대상인 농지의 대토는 해당 농지 소재지에 2년 이상 거주해야 한다. (O/X)",
+                answer: "X",
+                explanation: "농지의 대토에 대한 양도소득세 감면은 해당 농지 소재지에 3년 이상 거주해야 적용 가능하다. (농업경영에 종사 등 요건도 충족해야 함)"
+            },
+            {
+                question: "파생상품 양도소득은 기타소득으로 과세된다. (O/X)",
+                answer: "X",
+                explanation: "파생상품 양도소득은 양도소득으로 분류되어 과세된다."
+            },
+            {
+                question: "특수관계인 간의 저가양도 또는 고가양도는 부당행위계산부인 규정이 적용될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "특수관계인 간의 거래에서 조세 부담을 부당하게 감소시킨 것으로 인정되는 경우 부당행위계산부인 규정이 적용되어 시가로 양도된 것으로 본다."
+            },
+            {
+                question: "상속개시 후 1년 이내에 양도된 상속재산은 상속세 계산 시 시가로 평가된 가액을 취득가액으로 한다. (O/X)",
+                answer: "O",
+                explanation: "상속개시일 전후 6개월 이내(평가기간)에 양도된 상속재산은 그 매매가액을 시가로 보아 상속세가 과세되고, 이 상속세 평가액이 양도소득세 계산 시 취득가액이 된다."
+            },
+            {
+                question: "소득세법상 국외 자산 양도소득에 대해 거주자는 5년 이상 국내에 주소 또는 거소를 둔 자에 한하여 과세한다. (O/X)",
+                answer: "O",
+                explanation: "국외 자산 양도소득은 원칙적으로 계속하여 5년 이상 국내에 주소 또는 거소를 둔 거주자에게만 과세된다."
+            },
+            {
+                question: "주택 양도 시 공동명의 주택의 경우 각자의 지분별로 1세대 1주택 비과세 요건을 판단한다. (O/X)",
+                answer: "X",
+                explanation: "공동명의 주택이라도 1세대 전체를 기준으로 1세대 1주택 비과세 요건을 판단한다."
+            },
+            {
+                question: "양도소득세 비과세 대상인 1세대 1주택 판단 시 겸용주택은 주택 부분만 주택으로 본다. (O/X)",
+                answer: "X",
+                explanation: "겸용주택의 경우 주택 면적이 주택 외의 면적보다 큰 경우에는 전부 주택으로 보고, 주택 면적이 주택 외의 면적과 같거나 작은 경우에는 주택 부분만 주택으로 본다."
+            },
+            {
+                question: "소득세의 분납은 납부할 세액이 1천만원을 초과하는 경우 가능하다. (O/X)",
+                answer: "O",
+                explanation: "종합소득세 또는 양도소득세의 납부할 세액이 1천만원을 초과하는 경우, 그 초과하는 금액에 대해 분납이 가능하다."
+            },
+            {
+                question: "기한 후 신고는 법정신고기한 내에 신고하지 않은 경우에 하는 신고이다. (O/X)",
+                answer: "O",
+                explanation: "기한 후 신고는 법정신고기한까지 과세표준 신고서를 제출하지 아니한 자가 그 기한이 지난 후에 하는 신고이다."
+            },
+            {
+                question: "무신고가산세는 법정신고기한 경과 후 6개월 이내에 기한 후 신고하는 경우 감면받을 수 없다. (O/X)",
+                answer: "X",
+                explanation: "무신고가산세는 법정신고기한 경과 후 1개월 이내에 기한 후 신고하는 경우 50%, 1개월 초과 6개월 이내에 신고하는 경우 20%를 감면받을 수 있다."
+            },
+            {
+                question: "납세조합에 가입한 사업자는 소득세액공제를 받을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "납세조합에 가입하여 소득세를 납부하는 사업자는 납부세액의 일정률을 세액공제받을 수 있다."
+            },
+            {
+                question: "결손금 소급공제는 직전 과세기간의 소득세에서 환급받는 제도이다. (O/X)",
+                answer: "O",
+                explanation: "결손금 소급공제는 해당 과세기간에 발생한 결손금을 직전 과세기간의 소득금액에서 공제하여 이미 납부한 소득세를 환급받는 제도이다."
+            },
+            {
+                question: "결손금 소급공제는 모든 사업자에게 적용될 수 있다. (O/X)",
+                answer: "X",
+                explanation: "결손금 소급공제는 중소기업 등 특정 사업자에게만 적용되며, 모든 사업자에게 적용되는 것은 아니다."
+            },
+            {
+                question: "종합소득세액 계산 시 세액감면은 세액공제보다 우선적으로 적용된다. (O/X)",
+                answer: "O",
+                explanation: "세액감면은 세액공제보다 우선하여 적용된다."
+            },
+            {
+                question: "성실사업자 등의 의료비 세액공제 한도는 일반 근로소득자의 의료비 세액공제 한도와 동일하다. (O/X)",
+                answer: "O",
+                explanation: "성실사업자 및 종교단체 등은 일반 근로소득자와 동일한 의료비 세액공제 한도 및 공제율을 적용받는다."
+            },
+            {
+                question: "소득세법상 부당행위계산 부인은 특수관계인과의 거래에서 조세의 부담을 부당하게 감소시킨 경우 적용된다. (O/X)",
+                answer: "O",
+                explanation: "부당행위계산 부인은 특수관계인과의 거래를 통해 조세 부담을 부당하게 감소시킨 경우에 적용되는 규정이다."
+            },
+            {
+                question: "법인세법상 배당으로 처분된 금액은 소득세법상 배당소득에 해당한다. (O/X)",
+                answer: "O",
+                explanation: "법인세법에 따라 소득처분된 배당은 소득세법상 배당소득에 해당한다."
+            },
+            {
+                question: "법인세 과세표준 신고 시 비용으로 계상된 퇴직급여충당금 중 손금불산입된 금액은 소득세법상 퇴직소득에 포함되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "법인세법상 손금불산입된 퇴직급여충당금은 아직 실제 지급되지 않은 금액이므로 소득세법상 퇴직소득에 포함되지 않는다. (실제 지급 시점에 과세)"
+            },
+            {
+                question: "국내에 사업장이 없는 비거주자의 국내원천소득은 원천징수로 납세의무가 종결된다. (O/X)",
+                answer: "O",
+                explanation: "국내에 사업장이 없는 비거주자의 국내원천소득은 원천징수로 납세의무가 종결되는 것이 원칙이다. (분리과세)"
+            },
+            {
+                question: "외국납부세액공제는 국외원천소득에 대해 외국에서 납부한 세액을 국내 소득세에서 공제하는 제도이다. (O/X)",
+                answer: "O",
+                explanation: "외국납부세액공제는 국외원천소득에 대해 외국에서 납부한 세액을 국내 소득세 산출세액에서 공제하여 국제적 이중과세를 방지하는 제도이다."
+            },
+            {
+                question: "외국납부세액공제는 세액공제 방식만 가능하며, 필요경비 산입 방식은 허용되지 않는다. (O/X)",
+                answer: "X",
+                explanation: "외국납부세액은 세액공제 방식 또는 필요경비 산입 방식 중 납세자에게 유리한 방식을 선택하여 적용할 수 있다."
+            },
+            {
+                question: "소득세법상 소득구분은 종합소득, 퇴직소득, 양도소득으로 구분되며, 각 소득은 합산하여 과세하지 않는다. (O/X)",
+                answer: "X",
+                explanation: "소득세법상 소득은 종합소득, 퇴직소득, 양도소득으로 구분되지만, 종합소득 내에서는 합산하여 과세하며, 퇴직소득과 양도소득은 분류과세한다."
+            },
+            {
+                question: "소득금액증명원은 납세자가 소득이 없더라도 발급받을 수 있다. (O/X)",
+                answer: "X",
+                explanation: "소득금액증명원은 세법에 따라 소득이 신고되거나 결정된 사실이 있어야 발급받을 수 있다. 소득이 없으면 '소득 없음 사실증명'을 발급받는다."
+            },
+            {
+                question: "사업소득 계산 시 소득세법상 인정되지 않는 비용은 필요경비에 산입할 수 없다. (O/X)",
+                answer: "O",
+                explanation: "소득세법상 필요경비로 인정되지 않는 비용은 과세소득 계산 시 공제받을 수 없다."
+            },
+            {
+                question: "현금영수증 발행 세액공제는 근로소득자가 아닌 사업자도 받을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "현금영수증 발행 세액공제는 주로 개인사업자(간이과세자 등)가 현금영수증을 발행한 경우 적용받을 수 있다."
+            },
+            {
+                question: "신용카드 등 사용금액 소득공제는 총급여액의 25%를 초과하는 금액부터 적용된다. (O/X)",
+                answer: "O",
+                explanation: "신용카드 등 사용금액 소득공제는 총급여액의 25%를 초과하는 금액에 대해서만 공제가 적용된다."
+            },
+            {
+                question: "주택청약종합저축 소득공제는 무주택 세대주만 받을 수 있다. (O/X)",
+                answer: "O",
+                explanation: "주택청약종합저축 소득공제는 무주택 세대주인 근로자만 적용받을 수 있다."
+            },
+            {
+                question: "소득세의 세율은 6%에서 45%까지 8단계 초과누진세율로 되어 있다. (O/X)",
+                answer: "O",
+                explanation: "소득세의 세율은 과세표준 구간에 따라 6%부터 45%까지 8단계 초과누진세율로 적용된다."
+            },
+            {
+                question: "퇴직소득은 분류과세되므로 다른 소득과 합산하여 과세되지 않는다. (O/X)",
+                answer: "O",
+                explanation: "퇴직소득은 종합소득, 양도소득과 별도로 분류과세되어 다른 소득과 합산되지 않는다."
+            },
+            {
+                question: "양도소득세 계산 시 양도소득금액에 감면소득금액을 합산하여 과세표준을 계산한다. (O/X)",
+                answer: "X",
+                explanation: "양도소득세 과세표준은 양도소득금액에서 양도소득기본공제를 차감한 금액이며, 감면소득금액은 과세표준 계산에 포함되지 않고 세액 계산 후 감면된다."
+            },
+            {
+                question: "양도소득세 과세표준은 양도소득금액에서 양도소득기본공제를 차감한 금액이다. (O/X)",
+                answer: "O",
+                explanation: "양도소득세 과세표준은 양도소득금액에서 양도소득기본공제를 차감한 금액으로 한다."
+            },
+            {
+                question: "소득세법상 소액부징수 규정은 원천징수세액이 1천원 미만일 때 적용된다. (O/X)",
+                answer: "O",
+                explanation: "소득세법상 소액부징수 규정은 원천징수할 세액이 1천원 미만인 경우 해당 세액을 징수하지 않는 것을 말한다."
+            },
+            {
+                question: "세대 분리한 자녀도 직계비속으로서 기본공제 대상이 될 수 있다. (O/X)",
+                answer: "O",
+                explanation: "세대 분리 여부와 관계없이 소득 및 나이 요건을 충족하면 직계비속으로서 기본공제 대상이 될 수 있다."
+            },
+            {
+                question: "종교단체 기부금은 지정기부금으로 보아 세액공제를 적용한다. (O/X)",
+                answer: "O",
+                explanation: "종교단체에 지출한 기부금은 지정기부금에 해당하여 세액공제 또는 필요경비 산입 대상이 된다."
+            }
+        ];
+
+        /**
+         * Loads embedded quiz data synchronously.
+         * @returns {Promise<Array>} Quiz data array
+         */
+        async function loadQuizData() {
+            return incomeTaxQuizData; // 소득세법 퀴즈 데이터로 변경
+        }
+
+        // ============================ Quiz start and initialization ============================
+        /**
+         * Initializes and starts the quiz.
+         * @param {number} numQuestions - Number of questions to play
+         */
+        async function startQuiz(numQuestions) {
+            allQuizData = await loadQuizData(); // Load embedded quiz data
+            if (allQuizData.length === 0) {
+                showMessage("앗! 퀴즈 문제를 찾을 수 없어... 😥");
+                showScreen('start');
+                return;
+            }
+
+            // If requested number of questions is more than total questions, use all questions
+            if (numQuestions > allQuizData.length) {
+                quizTotalQuestions = allQuizData.length;
+                showMessage(`요청한 문제 수(${numQuestions}개)가 전체 문제 수(${allQuizData.length}개)보다 많습니다. 전체 ${quizTotalQuestions}문제를 사용해요!`);
+            } else {
+                quizTotalQuestions = numQuestions;
+            }
+
+            // Shuffle all questions and slice by requested number
+            const shuffledAllQuestions = [...allQuizData];
+            shuffleArray(shuffledAllQuestions);
+            currentQuizData = shuffledAllQuestions.slice(0, quizTotalQuestions);
+
+            // Initialize
+            currentQuestionIndex = 0;
+            score = 0; // Reset raw score
+            incorrectQuestions = [];
+            selectedChoice = null;
+            isAnswerChecked = false; // Reset answer checked flag for the *new* quiz
+            timer = 0; // Reset timer
+            startTimer(); // Start the timer
+
+            showScreen('quiz');
+            updateQuizHeaderVisibility(true); // Show quiz header
+            questionChoicesArea.classList.remove('hidden'); // Show choices area
+            quizControls.classList.remove('hidden'); // Show quiz control buttons
+            displayQuestion();
+            playStartSound(); // Play sound on quiz start
+        }
+
+        /**
+         * Restarts the quiz (full or incorrect questions).
+         * @param {number|'incorrect'} mode - Number of questions to restart with, or 'incorrect' for incorrect questions
+         */
+        function restartQuiz(mode) {
+            if (mode === 'incorrect') {
+                currentQuizData = [...incorrectQuestions]; // Set quiz data to incorrect questions
+                if (currentQuizData.length === 0) {
+                    showMessage('와! 틀린 문제가 하나도 없어! 대단해! 👍');
+                    showScreen('end'); // Stay on end screen if no incorrect questions
+                    return;
+                }
+                shuffleArray(currentQuizData); // Shuffle incorrect questions too
+                quizTotalQuestions = currentQuizData.length;
+            } else {
+                const shuffledAllQuestions = [...allQuizData];
+                shuffleArray(shuffledAllQuestions);
+                currentQuizData = shuffledAllQuestions.slice(0, quizTotalQuestions);
+            }
+
+            // Initialize
+            currentQuestionIndex = 0;
+            score = 0; // Reset raw score
+            incorrectQuestions = [];
+            selectedChoice = null;
+            isAnswerChecked = false; // Reset answer checked flag for the *new* quiz
+            timer = 0; // Reset timer
+            startTimer(); // Start the timer
+
+            showScreen('quiz');
+            updateQuizHeaderVisibility(true); // Show quiz header
+            questionChoicesArea.classList.remove('hidden'); // Show choices area
+            quizControls.classList.remove('hidden'); // Show quiz control buttons
+            displayQuestion();
+            playStartSound(); // Play sound on quiz restart
+        }
+
+        /**
+         * Starts the review mode for incorrect questions.
+         */
+        function startReviewMode() {
+            restartQuiz('incorrect'); // Call restart quiz with 'incorrect' mode
+        }
+
+        // ============================ Timer functions ============================
+        /**
+         * Starts the quiz timer.
+         */
+        function startTimer() {
+            if (timerIntervalId) {
+                clearInterval(timerIntervalId);
+            }
+            timerIntervalId = setInterval(() => {
+                timer++;
+                updateTimerDisplay();
+            }, 1000);
+        }
+
+        /**
+         * Stops the quiz timer.
+         */
+        function stopTimer() {
+            clearInterval(timerIntervalId);
+            timerIntervalId = null;
+        }
+
+        /**
+         * Updates the timer display in MM:SS format.
+         */
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timer / 60);
+            const seconds = timer % 60;
+            timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // ============================ Display functions ============================
+        /**
+         * Displays the current question and its choices.
+         */
+        function displayQuestion() {
+            // Update question count display
+            questionCount.textContent = `문제 ${currentQuestionIndex + 1} / ${quizTotalQuestions}`;
+            scoreDisplay.textContent = `별 점수: ${score} ✨`; // Displays raw score during quiz
+
+            const question = currentQuizData[currentQuestionIndex];
+            questionText.textContent = question.question;
+            
+            // Clear previous choices and reset styles
+            questionChoicesArea.innerHTML = `
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="O">O (동그라미)</div>
+                <div class="p-4 border border-gray-200 rounded-lg cursor-pointer hover:bg-blue-50 transition duration-200 ease-in-out text-gray-800 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100" data-choice="X">X (엑스)</div>
+            `;
+
+            // Attach event listeners to the new O/X choice elements
+            Array.from(questionChoicesArea.children).forEach(choiceDiv => {
+                choiceDiv.addEventListener('click', () => {
+                    if (!isAnswerChecked) { // Ensure only one selection/check per question
+                        playButtonClickSound(); // Play sound immediately on selection
+                        selectChoice(choiceDiv.dataset.choice); // Visually select
+                        checkAnswer(); // Call checkAnswer logic
+                        // Disable choices after an answer is submitted
+                        Array.from(questionChoicesArea.children).forEach(c => {
+                            c.style.pointerEvents = 'none';
+                            c.classList.add('cursor-not-allowed'); // Add a visual cue for disabled
+                        });
+                    }
+                });
+            });
+
+            // Reset feedback and button text
+            feedbackExplanationArea.classList.add('hidden');
+            feedbackText.textContent = '';
+            explanationText.textContent = '';
+            checkNextButton.textContent = '다음 문제로 Go! 👉'; // Button text is always "다음 문제" after a choice is made
+            selectedChoice = null; // Clear selected choice
+            isAnswerChecked = false; // Reset answer checked flag for the *new* question
+            resetChoiceStyles(); // Reset choice styles and re-enable pointer events for new question
+        }
+
+        /**
+         * Handles choice selection.
+         * @param {string} choice - The selected choice ('O' or 'X')
+         */
+        function selectChoice(choice) {
+            resetChoiceStyles(); // Clear previous selection styles
+            selectedChoice = choice;
+            const selectedChoiceElement = questionChoicesArea.querySelector(`[data-choice="${choice}"]`);
+            selectedChoiceElement.classList.add(
+                'bg-blue-200', 'border-blue-500' // Light mode selection styles
+            );
+            // Apply dark mode specific selection styles
+            if (document.documentElement.classList.contains('dark')) {
+                selectedChoiceElement.classList.add('dark:selected-choice-style'); // Apply custom class for dark mode
+            }
+        }
+
+        /**
+         * Resets the styles of all choices.
+         */
+        function resetChoiceStyles() {
+            Array.from(questionChoicesArea.children).forEach(child => {
+                child.classList.remove(
+                    'bg-blue-200', 'border-blue-500', // selected (light mode)
+                    'bg-green-100', 'border-green-400', // correct (light mode)
+                    'bg-red-2200', 'border-red-500',     // incorrect (light mode)
+                    'dark:selected-choice-style', // Remove custom dark mode selected class
+                    'dark:bg-green-700', 'dark:border-green-400', // correct (dark mode)
+                    'dark:bg-red-600', 'dark:border-red-300' // incorrect (dark mode)
+                );
+                child.style.pointerEvents = 'auto'; // Re-enable pointer events for choices
+                child.classList.remove('cursor-not-allowed'); // Remove disabled cursor
+            });
+        }
+
+        /**
+         * Checks the selected answer (called immediately when a choice is made).
+         */
+        function checkAnswer() {
+            isAnswerChecked = true; // Set flag to indicate answer has been checked
+            checkNextButton.textContent = '다음 문제로 Go! 👉'; // Change button text to "다음 문제"
+            feedbackExplanationArea.classList.remove('hidden'); // Show feedback area
+
+            const currentQuestion = currentQuizData[currentQuestionIndex];
+            const correctAnswer = currentQuestion.answer;
+            const selectedChoiceElement = questionChoicesArea.querySelector(`[data-choice="${selectedChoice}"]`);
+            const correctChoiceElement = questionChoicesArea.querySelector(`[data-choice="${correctAnswer}"]`);
+
+            // Highlight correct answer
+            correctChoiceElement.classList.add('bg-green-100', 'border-green-400', 'dark:bg-green-700', 'dark:border-green-400');
+
+            if (selectedChoice === correctAnswer) {
+                score++; // Increment raw score
+                feedbackText.textContent = '딩동댕! 잘했어!  ';
+                // Remove previous error state colors and add success state colors including dark mode variants
+                feedbackText.classList.remove('text-red-600', 'dark:text-red-400');
+                feedbackText.classList.add('text-green-600', 'dark:text-green-400');
+                playCorrectSound(); // Play correct sound
+            } else {
+                feedbackText.textContent = '아쉬워! ㅠㅠ 다시 생각해볼까? 🧐';
+                // Remove previous success state colors and add error state colors including dark mode variants
+                feedbackText.classList.remove('text-green-600', 'dark:text-green-400');
+                feedbackText.classList.add('text-red-600', 'dark:text-red-400');
+                // Ensure selected incorrect answer removes selection highlight properly and applies incorrect style
+                selectedChoiceElement.classList.remove('bg-blue-200', 'border-blue-500', 'dark:selected-choice-style'); // Remove selected style
+                selectedChoiceElement.classList.add('bg-red-200', 'border-red-500', 'dark:bg-red-600', 'dark:border-red-300'); // Add incorrect style
+                incorrectQuestions.push(currentQuestion); // Add to incorrect questions
+                playIncorrectSound(); // Play incorrect sound
+            }
+            explanationText.textContent = `꼼꼼 해설: ${currentQuestion.explanation}`;
+            scoreDisplay.textContent = `별 점수: ${score} ✨`; // Update score immediately (raw score)
+        }
+
+        /**
+         * Moves to the next question or ends the quiz (now always called by checkNextButton).
+         */
+        function checkOrNextQuestion() {
+            moveToNextQuestion();
+            playButtonClickSound(); // Play sound on button click
+        }
+
+        /**
+         * Moves to the next question or ends the quiz.
+         */
+        function moveToNextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizTotalQuestions) {
+                displayQuestion();
+            } else {
+                endQuiz();
+            }
+        }
+
+        /**
+         * Ends the quiz and displays the final score.
+         */
+        function endQuiz() {
+            stopTimer(); // Stop the timer
+            showScreen('end');
+
+            // Calculate final score based on 100-point scale
+            const finalCalculatedScore = (score / quizTotalQuestions) * 100;
+            const correctCount = score;
+            const incorrectCount = incorrectQuestions.length;
+
+            // Display all information in the finalScoreDisplay element
+            finalScoreDisplay.textContent = `(총 ${quizTotalQuestions}문제, ${correctCount}개 정답, ${incorrectCount}개 오답! 대단해! 🎉 점수: ${finalCalculatedScore.toFixed(0)}점)`;
+            
+            playEndSound(); // Play end sound
+            updateQuizHeaderVisibility(false); // Hide quiz header
+            endQuizButtonsArea.classList.remove('hidden'); // Ensure buttons are visible on end screen
+        }
+
+        /**
+         * Controls which screen is visible.
+         * @param {'start'|'quiz'|'end'} screenName - The name of the screen to show
+         */
+        function showScreen(screenName) {
+            startScreen.classList.add('hidden');
+            quizScreen.classList.add('hidden');
+            endQuizScreen.classList.add('hidden');
+
+            // Always hide settings initially, then show only if it's the start screen
+            settingsControls.classList.add('hidden'); // Hide settings for all screens by default
+
+            if (screenName === 'start') {
+                startScreen.classList.remove('hidden');
+                settingsControls.classList.remove('hidden'); // Show settings only on start screen
+            } else if (screenName === 'quiz') {
+                quizScreen.classList.remove('hidden');
+                // settingsControls remains hidden
+            } else if (screenName === 'end') {
+                endQuizScreen.classList.remove('hidden');
+                // settingsControls remains hidden
+            }
+        }
+
+        /**
+         * Toggles the visibility of the quiz header elements.
+         * @param {boolean} show - True to show, false to hide
+         */
+        function updateQuizHeaderVisibility(show) {
+            if (show) {
+                quizHeader.classList.remove('hidden');
+            } else {
+                quizHeader.classList.add('hidden');
+            }
+        }
+
+        /**
+         * Shuffles an array randomly (Fisher-Yates shuffle algorithm).
+         * @param {Array} array - The array to shuffle
+         */
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+            }
+        }
+
+        // ============================ Event Listeners ============================
+
+        // Start screen button event listeners
+        start10Button.addEventListener('click', () => startQuiz(10));
+        start20Button.addEventListener('click', () => startQuiz(20));
+        start40Button.addEventListener('click', () => startQuiz(40));
+
+        // This button now always moves to the next question or ends the quiz
+        checkNextButton.addEventListener('click', checkOrNextQuestion);
+        endEarlyButton.addEventListener('click', endQuiz);
+        // 'Restart Full Quiz' button restarts with the current quiz session's question count
+        restartFullQuizButton.addEventListener('click', () => restartQuiz(quizTotalQuestions));
+        reviewIncorrectButton.addEventListener('click', startReviewMode);
+        goToHomeButton.addEventListener('click', () => {
+            location.reload(); // Go to home screen = reload page
+        });
+
+        // Dark mode toggle event listener
+        darkModeToggle.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            // Toggle icons based on dark mode status
+            if (document.documentElement.classList.contains('dark')) {
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+        });
+
+        // Sound toggle event listener
+        soundToggle.addEventListener('click', () => {
+            isSoundEnabled = !isSoundEnabled; // Toggle sound status
+            // Update Tone.Destination.mute immediately
+            Tone.Destination.mute = !isSoundEnabled;
+            // Toggle icons based on sound status
+            if (isSoundEnabled) {
+                speakerIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            } else {
+                speakerIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+            }
+        });
+
+
+        // ============================ Quiz initialization and start on DOMContentLoaded ============================
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initially show only the start screen, hide all quiz related elements
+            startScreen.classList.remove('hidden');
+            quizScreen.classList.add('hidden'); // Explicitly hide quizScreen
+            endQuizScreen.classList.add('hidden'); // Explicitly hide endQuizScreen
+
+            quizHeader.classList.add('hidden');
+            questionChoicesArea.classList.add('hidden');
+            feedbackExplanationArea.classList.add('hidden');
+            quizControls.classList.add('hidden');
+            endQuizButtonsArea.classList.add('hidden'); // This line was important!
+            scoreDisplay.classList.add('hidden');
+
+            // Settings control should only be visible on the start screen when the page loads
+            showScreen('start'); // This handles visibility of settingsControls correctly
+
+            // Set initial dark mode icon based on system preference or saved state
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                sunIcon.classList.add('hidden');
+                moonIcon.classList.remove('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                sunIcon.classList.remove('hidden');
+                moonIcon.classList.add('hidden');
+            }
+
+            // Set initial sound icon (default: on)
+            if (isSoundEnabled) {
+                speakerIcon.classList.remove('hidden');
+                muteIcon.classList.add('hidden');
+            } else {
+                speakerIcon.classList.add('hidden');
+                muteIcon.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
